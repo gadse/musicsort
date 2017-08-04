@@ -15,13 +15,14 @@ def main():
                                                     compression).""")
     parser.add_argument("-dir", "--directory", help="Path to the music files.", default=".")
     #parser.add_argument("-mbr", "--min-bitrate", default="0", help="""The minimum bitrate for 
-                                                                      lossyly-compressed files.""",)
+    #                                                                  lossyly-compressed files.""",)
     args = parser.parse_args()
     print(args)
 
     files = dict()
     dir = args.directory + "/test/data"
-    files_in_cur_dir = [MusicFile(join(dir, f), f) \
+    # TODO: Read tags via mutagen and store them!
+    files_in_cur_dir = [MusicFile(join(dir, f), f, None) \
                         for f in listdir(dir) \
                         if isfile(join(dir, f))]
     for mf in files_in_cur_dir:
@@ -31,10 +32,11 @@ def main():
             if filelist is None:
                 files[filetype] = []
             files[filetype].append(mf)
-            
-    print("MP3 >\t" + repr(files["mp3"]))
-    print("FLAC >\t" + repr(files["flac"]))
-    print("* >\t" + repr(files_in_cur_dir))
+
+    for t in files:
+        print("{} \t> {}".format(types[t]["dir"],
+                                 files[t]))
+    print("* \t> " + repr(files_in_cur_dir))
     for t in files:
         mkdir(types[t]["dir"])
     copy_file_list("MP3", files["mp3"])

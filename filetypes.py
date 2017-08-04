@@ -1,6 +1,6 @@
 from collections import namedtuple
 
-MusicFile = namedtuple("MusicFile", ["path", "file"])
+MusicFile = namedtuple("MusicFile", ["path", "file", "info"])
 
 types = dict();
 
