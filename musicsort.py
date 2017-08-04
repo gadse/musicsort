@@ -6,7 +6,6 @@ from os.path import isfile, join, abspath
 from shutil import copyfile
 from filetypes import types, getfiletype
 from filetypes import MusicFile as MusicFile
-from collections import namedtuple
 
 
 def main():
