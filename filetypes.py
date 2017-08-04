@@ -1,6 +1,10 @@
 from collections import namedtuple
 
-MusicFile = namedtuple("MusicFile", ["path", "file", "info"])
+import mutagen
+from mutagen.mp3 import MP3
+
+
+MusicFile = namedtuple("MusicFile", ["path", "file", "bitrate"])
 
 types = dict();
 
@@ -17,8 +21,15 @@ types["ogg"]["ext"] = ".ogg"
 types["ogg"]["dir"] = "OGG"
 
 
-def getfiletype(f: MusicFile):
+def get_file_type(f: MusicFile):
     for t in types:
         if f.path.endswith(types[t]["ext"]):
             return t
     return None
+
+
+def get_file_bitrate(f):
+    bitrate = -1
+    if f.endswith(types["mp3"]["ext"]):
+        bitrate = MP3(f).info.bitrate
+    return bitrate

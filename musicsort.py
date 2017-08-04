@@ -1,10 +1,7 @@
-
-# import mutagen
-
 from os import listdir, mkdir
 from os.path import isfile, join, abspath
 from shutil import copyfile
-from filetypes import types, getfiletype
+from filetypes import types, get_file_type, get_file_bitrate
 from filetypes import MusicFile as MusicFile
 import argparse
 
@@ -14,19 +11,21 @@ def main():
                                                     files by filetype and bitrate (in case of lossy 
                                                     compression).""")
     parser.add_argument("-dir", "--directory", help="Path to the music files.", default=".")
-    #parser.add_argument("-mbr", "--min-bitrate", default="0", help="""The minimum bitrate for 
-    #                                                                  lossyly-compressed files.""",)
+    parser.add_argument("-mbr", "--min_bitrate", default="0", help="""The minimum bitrate (in kBit/s) for 
+                                                                      lossily-compressed files.""",)
     args = parser.parse_args()
     print(args)
 
     files = dict()
     dir = args.directory + "/test/data"
-    # TODO: Read tags via mutagen and store them!
-    files_in_cur_dir = [MusicFile(join(dir, f), f, None) \
+    mbr = int(args.min_bitrate) * 1000
+    files_in_cur_dir = [MusicFile(join(dir, f), f, get_file_bitrate(join(dir, f))) \
                         for f in listdir(dir) \
-                        if isfile(join(dir, f))]
+                        if isfile(join(dir, f)) and (get_file_bitrate(join(dir, f)) >= mbr \
+                            or get_file_bitrate(join(dir, f)) == -1)]
+
     for mf in files_in_cur_dir:
-        filetype = getfiletype(mf)
+        filetype = get_file_type(mf)
         if filetype is not None:
             filelist = files.get(filetype, None)
             if filelist is None:
@@ -39,8 +38,7 @@ def main():
     print("* \t> " + repr(files_in_cur_dir))
     for t in files:
         mkdir(types[t]["dir"])
-    copy_file_list("MP3", files["mp3"])
-    copy_file_list("FLAC", files["flac"])
+        copy_file_list(types[t]["dir"], files[t])
 
 
 def copy_file_list(path, musicfiles):
