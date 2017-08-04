@@ -6,13 +6,24 @@ from os.path import isfile, join, abspath
 from shutil import copyfile
 from filetypes import types, getfiletype
 from filetypes import MusicFile as MusicFile
+import argparse
 
 
 def main():
+    parser = argparse.ArgumentParser(description="""Sorts and filters a given directory of music 
+                                                    files by filetype and bitrate (in case of lossy 
+                                                    compression).""")
+    parser.add_argument("-dir", "--directory", help="Path to the music files.", default=".")
+    #parser.add_argument("-mbr", "--min-bitrate", default="0", help="""The minimum bitrate for 
+                                                                      lossyly-compressed files.""",)
+    args = parser.parse_args()
+    print(args)
+
     files = dict()
-    files_in_cur_dir = [MusicFile(join("test/data", f), f) \
-                        for f in listdir("test/data") \
-                        if isfile(join("test/data", f))]
+    dir = args.directory + "/test/data"
+    files_in_cur_dir = [MusicFile(join(dir, f), f) \
+                        for f in listdir(dir) \
+                        if isfile(join(dir, f))]
     for mf in files_in_cur_dir:
         filetype = getfiletype(mf)
         if filetype is not None:
