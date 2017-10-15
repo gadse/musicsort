@@ -21,9 +21,9 @@ types["ogg"]["ext"] = ".ogg"
 types["ogg"]["dir"] = "OGG"
 
 
-def get_file_type(f: MusicFile):
+def get_file_type(f: str):
     for t in types:
-        if f.path.endswith(types[t]["ext"]):
+        if f.endswith(types[t]["ext"]):
             return t
     return None
 
