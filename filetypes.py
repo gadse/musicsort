@@ -24,10 +24,11 @@ types["ogg"]["dir"] = "OGG"
 
 
 def get_file_type(f: str):
+    out_type = None
     for t in types:
         if f.endswith(types[t]["ext"]):
-            return t
-    return None
+            out_type = t
+    return out_type
 
 
 def get_file_bitrate(f):
