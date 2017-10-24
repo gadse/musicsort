@@ -18,7 +18,8 @@ def main():
                                                     files by filetype and bitrate (in case of lossy 
                                                     compression).""")
     parser.add_argument("-dir", "--directory", help="Path to the music files.", default=".")
-    parser.add_argument("-out", "--output_directory", help="Path to where the tree of sorted files shall root.", default="out")
+    parser.add_argument("-out", "--output_directory", help="""Path to where the tree of sorted 
+                                                              files shall root.""", default="out")
     parser.add_argument("-mbr", "--min_bitrate", default="0", help="""The minimum bitrate (in kBit/s) for 
                                                                       lossily-compressed files.""")
     parser.add_argument("-bug", "--debug", action="store_true")
@@ -67,7 +68,7 @@ def gather_files(root, debug=False):
             path_and_name = (join(dirpath, name), name)
             all_files.append(path_and_name)
     return all_files
-    
+
 
 def filter_music_files(files: list):
     music_files = []
