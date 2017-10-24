@@ -1,4 +1,4 @@
-from os import listdir, walk, makedirs
+from os import listdir, walk, makedirs, symlink
 from os.path import isfile, join, abspath
 from shutil import copyfile
 from typing import List
@@ -22,11 +22,14 @@ def main():
                                                               files shall root.""", default="out")
     parser.add_argument("-mbr", "--min_bitrate", default="0", help="""The minimum bitrate (in kBit/s) for 
                                                                       lossily-compressed files.""")
+    parser.add_argument("-sim", "--simulate", action="store_true")
     parser.add_argument("-bug", "--debug", action="store_true")
+    
     args = parser.parse_args()
     print(args)
 
     debug = args.debug
+    simulate = args.simulate
 
     input_dir = args.directory
     output_dir = args.output_directory
@@ -35,7 +38,7 @@ def main():
     music_files = filter_music_files(all_files)
     good_music_files = filter_high_bitrate_music_files(music_files, int(args.min_bitrate))
     sorted_music_files = sort_music_files(good_music_files)
-    write_sorted_files(output_dir, sorted_music_files, debug=debug, all_files=music_files)
+    write_sorted_files(output_dir, sorted_music_files, debug=debug, simulate=simulate, all_files=music_files)
 
 
 def bugprint(s, debug):
@@ -83,7 +86,7 @@ def filter_music_files(files: list):
     return music_files
 
 
-def write_sorted_files(output_dir, files_by_type, debug=True, all_files=None):
+def write_sorted_files(output_dir, files_by_type, debug=False, simulate=False, all_files=None):
     if debug:
         print("*ALL* \t> " + repr(all_files))
     for t in files_by_type:
@@ -93,11 +96,14 @@ def write_sorted_files(output_dir, files_by_type, debug=True, all_files=None):
         bugprint("{} \t> {}".format(final_path, files_by_type[t]), debug)
 
 
-def copy_file_list(path: str, musicfiles: MusicFileList):
-    """Copies a given list of files to the given path."""
+def copy_file_list(path: str, musicfiles: MusicFileList, simulate=False):
+    """Copies a given list of files to the given path (if simulate is False), or creates symlinks instead (if simulate is True)."""
     for mf in musicfiles:
         print("copying to " + join(path, mf.file))
-        copyfile(mf.path, join(path, mf.file))
+        if simulate:
+            copyfile(mf.path, join(path, mf.file))
+        else:
+            symlink(abspath(mf.path), join(path, mf.file))
 
 
 if __name__ == '__main__':
