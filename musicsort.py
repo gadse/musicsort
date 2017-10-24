@@ -2,8 +2,8 @@ from os import listdir, walk, makedirs, symlink
 from os.path import isfile, join, abspath
 from shutil import copyfile
 from typing import List
-from filetypes import types, get_file_type, get_file_bitrate
-from filetypes import MusicFile as MusicFile
+from filetypes import types, get_file_type, get_file_bitrate, get_file_tag
+from filetypes import MusicFile, MusicTag
 import argparse
 
 MusicFileList = List[MusicFile]
@@ -33,8 +33,10 @@ def main():
 
     input_dir = args.directory
     output_dir = args.output_directory
+    bugprint("=== FILES IN QUESTION ===", debug)
     all_files = gather_files(input_dir, debug=debug)
     bugprint(all_files, debug)
+    bugprint("=========", debug)
     music_files = filter_music_files(all_files)
     good_music_files = filter_high_bitrate_music_files(music_files, int(args.min_bitrate))
     sorted_music_files = sort_music_files(good_music_files)
@@ -67,9 +69,10 @@ def gather_files(root, debug=False):
     all_files = []
     for (dirpath, dirnames, filenames) in walk(root):
         for name in filenames:
-            bugprint(name, debug)
-            path_and_name = (join(dirpath, name), name)
-            all_files.append(path_and_name)
+            if get_file_type(join(dirpath, name)):
+                bugprint(name, debug)
+                path_and_name = (join(dirpath, name), name)
+                all_files.append(path_and_name)
     return all_files
 
 
@@ -81,7 +84,8 @@ def filter_music_files(files: list):
         file_type = get_file_type(path)
         if file_type:
             bitrate = get_file_bitrate(path)
-            mf = MusicFile(path, name, bitrate)
+            tag = get_file_tag(path)
+            mf = MusicFile(path, name, bitrate, tag)
             music_files.append(mf)
     return music_files
 
@@ -99,7 +103,6 @@ def write_sorted_files(output_dir, files_by_type, debug=False, simulate=False, a
 def copy_file_list(path: str, musicfiles: MusicFileList, simulate=False):
     """Copies a given list of files to the given path (if simulate is False), or creates symlinks instead (if simulate is True)."""
     for mf in musicfiles:
-        print("copying to " + join(path, mf.file))
         if simulate:
             copyfile(mf.path, join(path, mf.file))
         else:

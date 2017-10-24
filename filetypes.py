@@ -4,9 +4,11 @@ import mutagen
 from mutagen.mp3 import MP3
 from mutagen.mp3 import BitrateMode
 from mutagen.oggvorbis import OggVorbis
+from mutagen.easyid3 import EasyID3
+from mutagen.flac import FLAC
 
-
-MusicFile = namedtuple("MusicFile", ["path", "file", "bitrate"])
+MusicTag = namedtuple("MusicTag", ["title", "title_number", "album", "artist", "album_artist"])
+MusicFile = namedtuple("MusicFile", ["path", "file", "bitrate", "tag"])
 
 types = dict();
 
@@ -25,6 +27,7 @@ types["ogg"]["dir"] = "OGG"
 
 def get_file_type(f: str):
     out_type = None
+    
     for t in types:
         if f.endswith(types[t]["ext"]):
             out_type = t
@@ -47,3 +50,20 @@ def get_file_bitrate(f):
     return bitrate
 
 
+def get_file_tag(f):
+    system_tag= None
+
+    if f.endswith(types["mp3"]["ext"]):
+        system_tag = EasyID3(f)
+    elif f.endswith(types["flac"]["ext"]):
+        system_tag = FLAC(f)
+    elif f.endswith(types["ogg"]["ext"]):
+        system_tag = OggVorbis(f)
+
+    out_tag = MusicTag(system_tag["title"][0],
+                   system_tag["tracknumber"][0],
+                   system_tag["album"][0],
+                   system_tag["artist"][0],
+                   system_tag["albumartist"][0])
+    
+    return out_tag
