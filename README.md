@@ -1,3 +1,5 @@
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/10f45a8a26994d7c9a9373e76f73c085)](https://www.codacy.com/app/inbox-github/musicsort?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=gadse/musicsort&amp;utm_campaign=Badge_Grade)
+
 # Warning
 This project is still in an infant stage, so use at your own risk. I won't be responsible if this breaks your music collection. And remember: No Backup - No Mercy! ;)
 
