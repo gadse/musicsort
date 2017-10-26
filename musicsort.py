@@ -67,7 +67,7 @@ def main():
     sorted_music_files = sort_music_files(good_music_files)
     write_sorted_files(
         output_dir=output_dir,
-        filey_by_type=sorted_music_files,
+        files_by_type=sorted_music_files,
         debug=debug,
         simulate=simulate,
         all_files=music_files
@@ -135,8 +135,8 @@ def write_sorted_files(output_dir, files_by_type,
 
 
 def copy_file_list(path: str, musicfiles: MusicFileList, simulate=False):
-    "Copies a given list of files to the given path (if simulate is False), "
-    "or creates symlinks instead (if simulate is True)."
+    """Copies a given list of files to the given path (if simulate is False), 
+    or creates symlinks instead (if simulate is True)."""
     for mf in musicfiles:
         if simulate:
             copyfile(mf.path, join(path, mf.file))
