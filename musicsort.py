@@ -5,8 +5,21 @@ from typing import List
 from filetypes import types, get_file_type, get_file_bitrate, get_file_tag
 from filetypes import MusicFile
 import argparse
+import logging
 
 MusicFileList = List[MusicFile]
+
+LOG = logging.getLogger(__name__)
+LOG.setLevel(logging.DEBUG)
+
+class Config(object):
+    """This class is meant to hold all configuration settings."""
+
+    def __init__(self, input_dir, output_dir, simulate=True, log_mode=logging.INFO):
+        self.input_dir = input_dir
+        self.output_dir = output_dir
+        self.simulate = simulate
+        self.log_mode = log_mode
 
 
 def bitrate_is_valid(bitrate, threshold):
@@ -14,6 +27,27 @@ def bitrate_is_valid(bitrate, threshold):
 
 
 def main():
+    args = make_parser().parse_args()
+    LOG.info(args)
+
+    conf = make_config(args)
+    LOG.info(conf)
+
+    LOG.log(conf.log_mode, "=== FILES IN QUESTION ===")
+    all_files = gather_files(conf)
+    LOG.log(conf.log_mode, all_files)
+    LOG.log(conf.log_mode, "=========")
+
+    music_files = filter_music_files(all_files)
+    good_music_files = filter_high_bitrate_music_files(
+        files=music_files,
+        min_bitrate=int(args.min_bitrate)
+    )
+    sorted_music_files = sort_music_files(good_music_files)
+    write_sorted_files(conf, sorted_music_files)
+
+
+def make_parser():
     parser = argparse.ArgumentParser(
         description="Sorts and filters a given directory of music files by "
                     "filetype and bitrate (in case of lossy compression)."
@@ -46,64 +80,23 @@ def main():
         "--debug",
         action="store_true"
     )
-
-    args = parser.parse_args()
-    print(args)
-
-    debug = args.debug
-    simulate = args.simulate
-
-    input_dir = args.directory
-    output_dir = args.output_directory
-    bugprint("=== FILES IN QUESTION ===", debug)
-    all_files = gather_files(input_dir, debug=debug)
-    bugprint(all_files, debug)
-    bugprint("=========", debug)
-    music_files = filter_music_files(all_files)
-    good_music_files = filter_high_bitrate_music_files(
-        files=music_files,
-        min_bitrate=int(args.min_bitrate)
-    )
-    sorted_music_files = sort_music_files(good_music_files)
-    write_sorted_files(
-        output_dir=output_dir,
-        files_by_type=sorted_music_files,
-        debug=debug,
-        simulate=simulate,
-        all_files=music_files
-    )
+    return parser
 
 
-def bugprint(s, debug):
-    if debug:
-        print(s)
+def make_config(args):
+    if args.debug:
+        log_mode = logging.DEBUG
+    else:
+        log_mode = logging.INFO
+    return Config(args.directory, args.output_directory, log_mode, args.simulate)
 
 
-def sort_music_files(files: MusicFileList):
-    tree = dict()
-    for t in types:
-        tree[t] = []
-    for file in files:
-        file_type = get_file_type(file.path)
-        tree[file_type].append(file)
-    for t in types:
-        if len(tree[t]) == 0:
-            del tree[t]
-    return tree
-
-
-def filter_high_bitrate_music_files(files: MusicFileList, min_bitrate):
-    return [file for file
-            in files
-            if bitrate_is_valid(file.bitrate, min_bitrate)]
-
-
-def gather_files(root, debug=False):
+def gather_files(conf):
     all_files = []
-    for (dirpath, _, filenames) in walk(root):
+    for (dirpath, _, filenames) in walk(conf.input_dir):
         for name in filenames:
             if get_file_type(join(dirpath, name)):
-                bugprint(name, debug)
+                LOG.log(conf.log_mode, name)
                 path_and_name = (join(dirpath, name), name)
                 all_files.append(path_and_name)
     return all_files
@@ -123,19 +116,35 @@ def filter_music_files(files: list):
     return music_files
 
 
-def write_sorted_files(output_dir, files_by_type,
-                       debug=False, simulate=False, all_files=None):
-    if debug:
-        print("*ALL* \t> " + repr(all_files))
+def filter_high_bitrate_music_files(files: MusicFileList, min_bitrate):
+    return [file for file
+            in files
+            if bitrate_is_valid(file.bitrate, min_bitrate)]
+
+
+def sort_music_files(files: MusicFileList):
+    tree = dict()
+    for t in types:
+        tree[t] = []
+    for file in files:
+        file_type = get_file_type(file.path)
+        tree[file_type].append(file)
+    for t in types:
+        if len(tree[t]) == 0:
+            del tree[t]
+    return tree
+
+
+def write_sorted_files(conf: Config, files_by_type):
     for t in files_by_type:
-        final_path = join(output_dir, types[t]["dir"])
+        final_path = join(conf.output_dir, types[t]["dir"])
         makedirs(final_path)
         copy_file_list(final_path, files_by_type[t])
-        bugprint("{} \t> {}".format(final_path, files_by_type[t]), debug)
+        LOG.log(conf.log_mode, "{} \t> {}".format(final_path, files_by_type[t]))
 
 
 def copy_file_list(path: str, musicfiles: MusicFileList, simulate=False):
-    """Copies a given list of files to the given path (if simulate is False), 
+    """Copies a given list of files to the given path (if simulate is False),
     or creates symlinks instead (if simulate is True)."""
     for mf in musicfiles:
         if simulate:
@@ -144,5 +153,5 @@ def copy_file_list(path: str, musicfiles: MusicFileList, simulate=False):
             symlink(abspath(mf.path), join(path, mf.file))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
