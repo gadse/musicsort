@@ -2,15 +2,21 @@ from os import walk, makedirs, symlink
 from os.path import join, abspath
 from shutil import copyfile
 from typing import List
-from filetypes import types, get_file_type, get_file_bitrate, get_file_tag
+from filetypes import types
+from filetypes import get_file_type
+from filetypes import get_file_bitrate
+from filetypes import get_file_tag
 from filetypes import MusicFile
 import argparse
 import logging
+
+logging.basicConfig()
 
 MusicFileList = List[MusicFile]
 
 LOG = logging.getLogger(__name__)
 LOG.setLevel(logging.DEBUG)
+
 
 class Config(object):
     """This class is meant to hold all configuration settings."""
@@ -21,6 +27,15 @@ class Config(object):
         self.simulate = simulate
         self.log_mode = log_mode
 
+    def __repr__(self):
+        representation = {
+            "input_dir": self.input_dir,
+            "output_dir": self.output_dir,
+            "simulate": self.simulate,
+            "log_mode": self.log_mode
+        }
+        return repr(representation)
+
 
 def bitrate_is_valid(bitrate, threshold):
     return bitrate > threshold or bitrate == -1
@@ -28,10 +43,10 @@ def bitrate_is_valid(bitrate, threshold):
 
 def main():
     args = make_parser().parse_args()
-    LOG.info(args)
+    LOG.debug(args)
 
     conf = make_config(args)
-    LOG.info(conf)
+    LOG.info(repr(conf))
 
     LOG.log(conf.log_mode, "=== FILES IN QUESTION ===")
     all_files = gather_files(conf)
@@ -88,7 +103,7 @@ def make_config(args):
         log_mode = logging.DEBUG
     else:
         log_mode = logging.INFO
-    return Config(args.directory, args.output_directory, log_mode, args.simulate)
+    return Config(args.directory, args.output_directory, simulate=args.simulate, log_mode=log_mode)
 
 
 def gather_files(conf):
@@ -137,21 +152,26 @@ def sort_music_files(files: MusicFileList):
 
 def write_sorted_files(conf: Config, files_by_type):
     for t in files_by_type:
-        final_path = join(conf.output_dir, types[t]["dir"])
-        makedirs(final_path)
-        copy_file_list(final_path, files_by_type[t])
-        LOG.log(conf.log_mode, "{} \t> {}".format(final_path, files_by_type[t]))
+        type_path = join(conf.output_dir, types[t]["dir"])
+        try:
+            makedirs(type_path)
+        except FileExistsError:
+            LOG.debug(f"skipping existing directory: {type_path}")
+        copy_file_list(type_path, files_by_type[t])
+        LOG.log(conf.log_mode, "{} \t> {}".format(type_path, files_by_type[t]))
 
 
 def copy_file_list(path: str, musicfiles: MusicFileList, simulate=False):
     """Copies a given list of files to the given path (if simulate is False),
     or creates symlinks instead (if simulate is True)."""
     for mf in musicfiles:
-        if simulate:
-            copyfile(mf.path, join(path, mf.file))
-        else:
-            symlink(abspath(mf.path), join(path, mf.file))
-
+        try:
+            if simulate:
+                copyfile(mf.path, join(path, mf.file))
+            else:
+                symlink(abspath(mf.path), join(path, mf.file))
+        except FileExistsError:
+            LOG.debug(f"skipping existing file: {mf.file}")
 
 if __name__ == "__main__":
     main()
