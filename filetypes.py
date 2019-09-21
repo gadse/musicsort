@@ -65,11 +65,11 @@ def get_file_tag(f):
     elif f.endswith(types["ogg"]["ext"]):
         system_tag = OggVorbis(f)
 
-    out_tag = MusicTag(system_tag["title"][0],
-                       system_tag["tracknumber"][0],
-                       system_tag["album"][0],
-                       system_tag["artist"][0],
-                       system_tag["albumartist"][0]
-                       )
-
+    out_tag = MusicTag(
+        title=system_tag["title"][0],
+        title_number=system_tag["tracknumber"][0],
+        album=system_tag["album"][0],
+        artist=system_tag["artist"][0],
+        album_artist=system_tag["albumartist"][0]
+    )
     return out_tag

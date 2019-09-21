@@ -59,7 +59,7 @@ def main():
         min_bitrate=int(args.min_bitrate)
     )
     sorted_music_files = sort_music_files(good_music_files)
-    write_sorted_files(conf, sorted_music_files)
+    write_sorted_files(conf, sorted_music_files, consider_artist=True, consider_album=True)
 
 
 def make_parser():
@@ -150,21 +150,27 @@ def sort_music_files(files: MusicFileList):
     return tree
 
 
-def write_sorted_files(conf: Config, files_by_type):
+def write_sorted_files(conf: Config, files_by_type, consider_artist=False, consider_album=False):
     for t in files_by_type:
-        type_path = join(conf.output_dir, types[t]["dir"])
-        try:
-            makedirs(type_path)
-        except FileExistsError:
-            LOG.debug(f"skipping existing directory: {type_path}")
-        copy_file_list(type_path, files_by_type[t])
-        LOG.log(conf.log_mode, "{} \t> {}".format(type_path, files_by_type[t]))
+        path = join(conf.output_dir, types[t]["dir"])
+
+        copy_file_list(path, files_by_type[t], consider_artist, consider_album)
+        LOG.log(conf.log_mode, "{} \t> {}".format(path, files_by_type[t]))
 
 
-def copy_file_list(path: str, musicfiles: MusicFileList, simulate=False):
+def copy_file_list(path: str, musicfiles: MusicFileList, simulate=False, consider_artist=False, consider_album=False):
     """Copies a given list of files to the given path (if simulate is False),
     or creates symlinks instead (if simulate is True)."""
     for mf in musicfiles:
+        print(">>>>>" + repr(mf.tag))
+        if consider_artist:
+            path = join(path, mf.tag.artist)
+        if consider_album:
+            path = join(path, mf.tag.album)
+        try:
+            makedirs(path)
+        except FileExistsError:
+            LOG.debug(f"skipping existing directory: {path}")
         try:
             if simulate:
                 copyfile(mf.path, join(path, mf.file))
