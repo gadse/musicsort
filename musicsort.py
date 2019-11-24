@@ -1,19 +1,22 @@
 #!/usr/bin/env python
 
+import argparse
+import logging
+import click
+
 from os import walk, makedirs, symlink
 from os.path import join, abspath
 from shutil import copyfile
 from typing import List
+from collections import namedtuple
+
 from filetypes import types
 from filetypes import get_file_type
 from filetypes import get_file_bitrate
 from filetypes import get_file_tag
 from filetypes import MusicFile
-from collections import namedtuple
-import argparse
-import logging
 
-Config = namedtuple("Config", ["input_dir", "output_dir", "simulate", "log_mode"])
+Config = namedtuple("Config", ["input_dir", "output_dir", "simulate", "min_bitrate", "log_mode"])
 MusicFileList = List[MusicFile]
 
 logging.basicConfig()
@@ -21,16 +24,43 @@ LOG = logging.getLogger(__name__)
 LOG.setLevel(logging.DEBUG)
 
 
-
 def bitrate_is_valid(bitrate, threshold):
     return bitrate > threshold or bitrate == -1
 
 
-def main():
-    args = make_parser().parse_args()
-    LOG.debug(args)
-
-    conf = make_config(args)
+@click.command(
+    "Sorts and filters a given directory of music files by "
+    "filetype and bitrate (in case of lossy compression)."
+)
+@click.option("-dir", "--directory", default=".", help="Path to the music files.")
+@click.option(
+    "-out",
+    "--output_directory",
+    default="out",
+    help="Path to where the tree of sorted files shall root.",
+)
+@click.option(
+    "-mbr",
+    "--min_bitrate",
+    default="0",
+    help="The minimum bitrate (in kBit/s) for lossily-compressed files.",
+)
+@click.option(
+    "-sim",
+    "--simulate",
+    is_flag=True,
+    help="If set, no files are actually moved. Insdead, symlinks are created. Using this option, you can test and see "
+         "if the output is to your liking, without possibly time-consuming file operations.",
+)
+@click.option("-bug", "--debug", is_flag=True, help="Enables gebug mode.")
+def main(directory, output_directory, simulate, min_bitrate, debug):
+    conf = Config(
+        input_dir=directory,
+        output_dir=output_directory,
+        simulate=simulate,
+        min_bitrate=min_bitrate,
+        log_mode=logging.DEBUG if debug else logging.INFO
+    )
     LOG.info(repr(conf))
 
     LOG.log(conf.log_mode, "=== FILES IN QUESTION ===")
@@ -40,7 +70,7 @@ def main():
 
     music_files = filter_music_files(all_files)
     good_music_files = filter_high_bitrate_music_files(
-        files=music_files, min_bitrate=int(args.min_bitrate)
+        files=music_files, min_bitrate=int(conf.min_bitrate)
     )
     sorted_music_files = sort_music_files(good_music_files)
     write_sorted_files(
@@ -49,28 +79,7 @@ def main():
 
 
 def make_parser():
-    parser = argparse.ArgumentParser(
-        description="Sorts and filters a given directory of music files by "
-        "filetype and bitrate (in case of lossy compression)."
-    )
-    parser.add_argument(
-        "-dir", "--directory", help="Path to the music files.", default="."
-    )
-    parser.add_argument(
-        "-out",
-        "--output_directory",
-        help="Path to where the tree of sorted files shall root.",
-        default="out",
-    )
-    parser.add_argument(
-        "-mbr",
-        "--min_bitrate",
-        default="0",
-        help="The minimum bitrate (in kBit/s) for lossily-compressed files.",
-    )
-    parser.add_argument("-sim", "--simulate", action="store_true")
-    parser.add_argument("-bug", "--debug", action="store_true")
-    return parser
+    return None
 
 
 def make_config(args):
