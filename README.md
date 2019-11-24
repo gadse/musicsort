@@ -27,5 +27,5 @@ musicsort Currently supports the following optional arguments:
 
 Example:
 ``` bash
-$ python musicsort.py -dir src -out dst -mbr 265
+$ python3 musicsort.py -dir src -out dst -mbr 265
 ```
