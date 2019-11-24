@@ -9,34 +9,17 @@ from filetypes import get_file_type
 from filetypes import get_file_bitrate
 from filetypes import get_file_tag
 from filetypes import MusicFile
+from collections import namedtuple
 import argparse
 import logging
 
-logging.basicConfig()
-
+Config = namedtuple("Config", ["input_dir", "output_dir", "simulate", "log_mode"])
 MusicFileList = List[MusicFile]
 
+logging.basicConfig()
 LOG = logging.getLogger(__name__)
 LOG.setLevel(logging.DEBUG)
 
-
-class Config(object):
-    """This class is meant to hold all configuration settings."""
-
-    def __init__(self, input_dir, output_dir, simulate=True, log_mode=logging.INFO):
-        self.input_dir = input_dir
-        self.output_dir = output_dir
-        self.simulate = simulate
-        self.log_mode = log_mode
-
-    def __repr__(self):
-        representation = {
-            "input_dir": self.input_dir,
-            "output_dir": self.output_dir,
-            "simulate": self.simulate,
-            "log_mode": self.log_mode,
-        }
-        return repr(representation)
 
 
 def bitrate_is_valid(bitrate, threshold):
