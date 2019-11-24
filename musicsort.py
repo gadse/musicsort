@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python
 
 from os import walk, makedirs, symlink
 from os.path import join, abspath
