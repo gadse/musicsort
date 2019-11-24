@@ -4,17 +4,23 @@
 This project is still in an infant stage, so use at your own risk. I won't be responsible if this breaks your music collection. And remember: No Backup - No Mercy! ;)
 
 # musicsort
-This is a personal project that aims to sort a "bunch of music files" nicely by file type and filter out those with bad quality (low bitrate). I started this because no tool I tried offered such sorting and filtering functionality, not even MusicBrainz Picard. A second-level sorting by artist, album, etc. is not implemented yet, but will follow soon(TM).
+This is a personal project that aims to sort a "bunch of music files" nicely by file type and filter out those with bad quality (low bitrate). I started this because no tool I tried offered such sorting and filtering functionality, not even MusicBrainz Picard.
 
 ## Usage
 Just invoke your favourite Python 3 interpreter with `musicsort.py`.
 ``` bash
 $ python3 musicsort.py
 ```
-If you just want to see how this would sort your stuff - without changing aniything - set the -sim flag to create symlinks instead of moving files.
+If you just want to see how this would sort your stuff - without changing anything - set the -sim flag to create symlinks instead of moving files.
 ``` bash
 $ python3 musicsort.py -sim
 ```
+
+If you want to use pipenv, you can start musicsort via
+``` bash
+$pipenv pipenv run ./musicsort.py
+```
+
 
 ## Parameters
 musicsort Currently supports the following optional arguments:
@@ -29,3 +35,7 @@ Example:
 ``` bash
 $ python3 musicsort.py -dir src -out dst -mbr 265
 ```
+
+# Developer Info
+To manage dependencies, pipenv is used. Use virtualenvs and manage your dependencies manualle, if you wish, but using
+pipenv is recommended as the maintainer is relying ton it.
