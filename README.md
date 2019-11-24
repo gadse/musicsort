@@ -9,11 +9,11 @@ This is a personal project that aims to sort a "bunch of music files" nicely by 
 ## Usage
 Just invoke your favourite Python 3 interpreter with `musicsort.py`.
 ``` bash
-$ python musicsort.py
+$ python3 musicsort.py
 ```
 If you just want to see how this would sort your stuff - without changing aniything - set the -sim flag to create symlinks instead of moving files.
 ``` bash
-$ python musicsort.py -sim
+$ python3 musicsort.py -sim
 ```
 
 ## Parameters
