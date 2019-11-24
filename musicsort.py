@@ -34,7 +34,7 @@ class Config(object):
             "input_dir": self.input_dir,
             "output_dir": self.output_dir,
             "simulate": self.simulate,
-            "log_mode": self.log_mode
+            "log_mode": self.log_mode,
         }
         return repr(representation)
 
@@ -57,46 +57,36 @@ def main():
 
     music_files = filter_music_files(all_files)
     good_music_files = filter_high_bitrate_music_files(
-        files=music_files,
-        min_bitrate=int(args.min_bitrate)
+        files=music_files, min_bitrate=int(args.min_bitrate)
     )
     sorted_music_files = sort_music_files(good_music_files)
-    write_sorted_files(conf, sorted_music_files, consider_artist=True, consider_album=True)
+    write_sorted_files(
+        conf, sorted_music_files, consider_artist=True, consider_album=True
+    )
 
 
 def make_parser():
     parser = argparse.ArgumentParser(
         description="Sorts and filters a given directory of music files by "
-                    "filetype and bitrate (in case of lossy compression)."
+        "filetype and bitrate (in case of lossy compression)."
     )
     parser.add_argument(
-        "-dir",
-        "--directory",
-        help="Path to the music files.",
-        default="."
+        "-dir", "--directory", help="Path to the music files.", default="."
     )
     parser.add_argument(
         "-out",
         "--output_directory",
         help="Path to where the tree of sorted files shall root.",
-        default="out"
+        default="out",
     )
     parser.add_argument(
         "-mbr",
         "--min_bitrate",
         default="0",
-        help="The minimum bitrate (in kBit/s) for lossily-compressed files."
+        help="The minimum bitrate (in kBit/s) for lossily-compressed files.",
     )
-    parser.add_argument(
-        "-sim",
-        "--simulate",
-        action="store_true"
-    )
-    parser.add_argument(
-        "-bug",
-        "--debug",
-        action="store_true"
-    )
+    parser.add_argument("-sim", "--simulate", action="store_true")
+    parser.add_argument("-bug", "--debug", action="store_true")
     return parser
 
 
@@ -105,7 +95,9 @@ def make_config(args):
         log_mode = logging.DEBUG
     else:
         log_mode = logging.INFO
-    return Config(args.directory, args.output_directory, simulate=args.simulate, log_mode=log_mode)
+    return Config(
+        args.directory, args.output_directory, simulate=args.simulate, log_mode=log_mode
+    )
 
 
 def gather_files(conf):
@@ -134,9 +126,7 @@ def filter_music_files(files: list):
 
 
 def filter_high_bitrate_music_files(files: MusicFileList, min_bitrate):
-    return [file for file
-            in files
-            if bitrate_is_valid(file.bitrate, min_bitrate)]
+    return [file for file in files if bitrate_is_valid(file.bitrate, min_bitrate)]
 
 
 def sort_music_files(files: MusicFileList):
@@ -152,7 +142,9 @@ def sort_music_files(files: MusicFileList):
     return tree
 
 
-def write_sorted_files(conf: Config, files_by_type, consider_artist=False, consider_album=False):
+def write_sorted_files(
+    conf: Config, files_by_type, consider_artist=False, consider_album=False
+):
     for t in files_by_type:
         path = join(conf.output_dir, types[t]["dir"])
 
@@ -160,7 +152,13 @@ def write_sorted_files(conf: Config, files_by_type, consider_artist=False, consi
         LOG.log(conf.log_mode, "{} \t> {}".format(path, files_by_type[t]))
 
 
-def copy_file_list(path: str, musicfiles: MusicFileList, simulate=False, consider_artist=False, consider_album=False):
+def copy_file_list(
+    path: str,
+    musicfiles: MusicFileList,
+    simulate=False,
+    consider_artist=False,
+    consider_album=False,
+):
     """Copies a given list of files to the given path (if simulate is False),
     or creates symlinks instead (if simulate is True)."""
     for mf in musicfiles:
@@ -180,6 +178,7 @@ def copy_file_list(path: str, musicfiles: MusicFileList, simulate=False, conside
                 symlink(abspath(mf.path), join(path, mf.file))
         except FileExistsError:
             LOG.debug(f"skipping existing file: {mf.file}")
+
 
 if __name__ == "__main__":
     main()
