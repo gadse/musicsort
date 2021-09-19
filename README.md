@@ -37,5 +37,5 @@ $ python3 musicsort.py -dir src -out dst -mbr 265
 ```
 
 # Developer Info
-To manage dependencies, pipenv is used. Use virtualenvs and manage your dependencies manualle, if you wish, but using
-pipenv is recommended as the maintainer is relying ton it.
+To manage dependencies, pipenv is used. Use virtualenvs and manage your dependencies manually, if you wish, but using
+pipenv is recommended as the maintainer is relying on it.
